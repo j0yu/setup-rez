@@ -35,23 +35,30 @@ async function run() {
 
         if (!cachedRezPath.length) {
             const downloadURL = `https://github.com/${rezGitRepo}/archive/${gitRef}.tar.gz`;
-            core.info(`Downloading "${downloadURL}" into...`)
+            core.info(`Downloading "${downloadURL}"...`);
+            
             const rezTarPath = await tc.downloadTool(downloadURL);
-            core.info(`..."${rezTarPath}", extracting into...`)
+            core.debug(`as "${rezTarPath}", extracting into...`);
+            
             const rezInstallPath = await tc.extractTar(rezTarPath);
-            core.info(`..."${rezInstallPath}", finding...`)
-            const rezInstallPy = await getInstallPy(`${rezInstallPath}`)
-            core.info(`..."${rezInstallPy}", installing...`)
-
+            core.debug(`..."${rezInstallPath}", finding...`);
+            
+            const rezInstallPy = await getInstallPy(`${rezInstallPath}`);
+            core.debug(`..."${rezInstallPy}"`);
+            
+            core.info("Installing...")
+            core.debug(`python ${rezInstallPy} ${rezInstallPath}`);
             await exec.exec('python', [rezInstallPy, rezInstallPath]);
         
             cachedRezPath = await tc.cacheDir(rezInstallPath, rezGitRepo, gitRef);
-            core.info(`...(cached) "${cachedRezPath}"`)
+            core.debug(`...(cached) "${cachedRezPath}"`);
         }
         
         const binFolder = ((process.platform == 'win32') ? 'Scripts': 'bin');
         const rezBinPath = path.join(cachedRezPath, binFolder, 'rez');
         core.addPath(rezBinPath);
+        core.debug(`Added "${rezBinPath}" to PATH`);
+
     } catch (error) {
         core.setFailed(error.message);
     }
