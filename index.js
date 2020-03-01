@@ -39,7 +39,7 @@ async function run() {
             core.info(`..."${rezTarPath}", extracting into...`)
             const rezInstallPath = await tc.extractTar(rezTarPath);
             core.info(`..."${rezInstallPath}", finding...`)
-            const rezInstallPy = await getInstallPy(rezInstallPath)
+            const rezInstallPy = await getInstallPy(rezInstallPath.toString())
             core.info(`..."${rezInstallPy}", installing...`)
 
             await exec.exec('python', [rezInstallPy, rezInstallPath]);
