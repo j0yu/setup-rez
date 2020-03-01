@@ -1,0 +1,21 @@
+name: "Setup rez"
+description: "Install and bind rez packages."
+inputs:
+  source:
+    description: "GitHub repository to install rez from."
+    required: false
+    default: 'nerdvegas/rez'
+  ref:
+    description: "Git tag/branch/commit to use."
+    required: false
+    default: 'master'
+  path:
+    description: "Path to installation root with src subfolder."
+    required: false
+    default: '.rez'
+outputs:
+  rez: # id of output
+    description: 'Path to the rez CLI script.'
+runs:
+  using: 'node12'
+  main: 'index.js'
