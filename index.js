@@ -8,6 +8,7 @@ const tc = require('@actions/tool-cache');
 
 async function getInstallPy(extractedPath) {
     // Tarball extracts to repo name + git ref sub-folder
+    core.info(typeof extractedPath)
     const extractDir = await fs.promises.opendir(extractedPath);
 
     for await (const dirent of extractDir) {
