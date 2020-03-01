@@ -54,6 +54,7 @@ async function run() {
         // Collect parameters and cache, if any
         const rezGitRepo = core.getInput('source');
         const gitRef = core.getInput('ref');
+        const isWindows = process.platform == 'win32';
         var cachedRezPath = tc.find(rezGitRepo, gitRef);
 
         if (!cachedRezPath.length) {
@@ -62,7 +63,7 @@ async function run() {
             core.debug(`...(cached) "${cachedRezPath}"`);
         }
 
-        const binFolder = ((process.platform == 'win32') ? 'Scripts': 'bin');
+        const binFolder = (isWindows ? 'Scripts': 'bin');
         const rezBinPath = path.join(cachedRezPath, binFolder, 'rez');
         core.addPath(rezBinPath);
         core.debug(`Added "${rezBinPath}" to PATH`);
@@ -75,7 +76,12 @@ async function run() {
             })
 
             let line = ''
-            for (line of output.trim().replace(/^- /m, '').split(os.EOL)) {
+            for (line of output.trim().split(os.EOL)) {
+                line = line.replace(/^- /, '')
+                line = line.replace(/\\/g, '\\\\')
+                // line = path.join(line.split(path.sep))
+                core.info(`line "${line}" `)
+                core.info(typeof line)
                 await io.mkdirP(line);
             }
         }
@@ -89,7 +95,7 @@ async function run() {
                 listeners: {stdout: (data) => (output += data.toString())},
             })
             await io.mkdirP(output);
-            
+
             let pkg = '';
             for (pkg of binds.trim().split(",")) {
                 await exec.exec('rez', ['bind', pkg.trim()]);
