@@ -33,13 +33,19 @@ async function run() {
         var cachedRezPath = tc.find(rezGitRepo, gitRef);
 
         if (!cachedRezPath.length) {
-            const rezTarPath = await tc.downloadTool(`https://github.com/${rezGitRepo}/archive/${gitRef}.tar.gz`);
+            const downloadURL = `https://github.com/${rezGitRepo}/archive/${gitRef}.tar.gz`;
+            core.info(`Downloading "${downloadURL}" into...`)
+            const rezTarPath = await tc.downloadTool(downloadURL);
+            core.info(`..."${rezTarPath}", extracting into...`)
             const rezInstallPath = await tc.extractTar(rezTarPath);
+            core.info(`..."${rezInstallPath}", finding...`)
             const rezInstallPy = await getInstallPy(rezInstallPath)
+            core.info(`..."${rezInstallPy}", installing...`)
 
             await exec.exec('python', [rezInstallPy, rezInstallPath]);
         
             cachedRezPath = await tc.cacheDir(rezInstallPath, rezGitRepo, gitRef);
+            core.info(`...(cached) "${cachedRezPath}"`)
         }
         
         const binFolder = ((process.platform == 'win32') ? 'Scripts': 'bin');
