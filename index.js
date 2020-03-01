@@ -77,12 +77,7 @@ async function run() {
 
             let line = ''
             for (line of output.trim().split(os.EOL)) {
-                line = line.replace(/^- /, '')
-                line = line.replace(/\\/g, '\\\\')
-                // line = path.join(line.split(path.sep))
-                core.info(`line "${line}" `)
-                core.info(typeof line)
-                await io.mkdirP(line);
+                await io.mkdirP(line.replace(/^- /, ''));
             }
         }
 
@@ -94,7 +89,7 @@ async function run() {
             await exec.exec('rez', ['config', 'local_packages_path'], {
                 listeners: {stdout: (data) => (output += data.toString())},
             })
-            await io.mkdirP(output);
+            await io.mkdirP(output.trimRight());
 
             let pkg = '';
             for (pkg of binds.trim().split(",")) {
