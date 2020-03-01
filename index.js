@@ -23,12 +23,12 @@ try {
     
     var cachedRezPath = tc.find(rezGitRepo, gitRef)
     if (!cachedRezPath.length) {
-        const rezTarPath = await tc.downloadTool(`https://github.com/${rezGitRepo}/archive/${gitRef}.tar.gz`)
-        const rezSrcPath = await tc.extractTar(rezTarPath, 'src')
+        const rezTarPath = tc.downloadTool(`https://github.com/${rezGitRepo}/archive/${gitRef}.tar.gz`)
+        const rezSrcPath = tc.extractTar(rezTarPath, 'src')
         const rezInstallPath = path.dirname(rezSrcPath)
-        await exec.exec('python', [path.join(rezSrcPath, 'install.py'), rezInstallPath])
+        exec.exec('python', [path.join(rezSrcPath, 'install.py'), rezInstallPath])
     
-        cachedRezPath = await tc.cacheDir(rezInstallPath, rezGitRepo, gitRef)
+        cachedRezPath = tc.cacheDir(rezInstallPath, rezGitRepo, gitRef)
     }
     
     const binFolder = ((process.platform == 'win32') ? 'Scripts': 'bin')
