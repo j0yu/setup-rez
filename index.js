@@ -2,6 +2,7 @@ const core = require('@actions/core');
 const exec = require('@actions/exec');
 const fs = require('fs');
 const io = require('@actions/io');
+const os = require('os');
 const path = require('path');
 const process = require('process');
 const tc = require('@actions/tool-cache');
@@ -74,8 +75,8 @@ async function run() {
             })
 
             let line = ''
-            for (line of output.trim().replace(/^- /m, '').split("\n")) {
-                await fs.mkdir(line, {recursive: true});
+            for (line of output.trim().replace(/^- /m, '').split(os.EOL)) {
+                await io.mkdirP(line);
             }
         }
 
@@ -87,7 +88,7 @@ async function run() {
             await exec.exec('rez', ['config', 'local_packages_path'], {
                 listeners: {stdout: (data) => (output += data.toString())},
             })
-            await fs.mkdir(output, {recursive: true});
+            await io.mkdirP(output);
             
             let pkg = '';
             for (pkg of binds.trim().split(",")) {
