@@ -16,13 +16,14 @@ async function getInstallPy(extractedPath) {
             const srcDir = await fs.promises.opendir(srcFolder);
             
             for await (const srcDirent of srcDir) {
-                if (srcDirent.name == 'install.py') {
+                if (srcDirent.name == 'install.py' && srcDirent.isFile()) {
                     return path.join(srcFolder, srcDirent.name)
                 }
             }
         }
     }
-    return '';
+    const globPath = path.join(extractedPath, '*', 'install.py');
+    throw `Could not find ${globPath}`;
 }
 
 async function run() {
