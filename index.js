@@ -1,10 +1,8 @@
 const core = require('@actions/core');
-const github = require('@actions/github');
 const exec = require('@actions/exec');
-const io = require('@actions/io');
-const tc = require('@actions/tool-cache');
 const path = require('path');
 const process = require('process');
+const tc = require('@actions/tool-cache');
 
 try {
     // Collect parameters
