@@ -1,0 +1,28 @@
+name: CI
+on: [push]
+
+jobs:
+  test:
+    name: Testing on ${{ matrix.os }} Py${{ matrix.python }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macosx-latest, windows-latest]
+        python: [2.7, 3.7]
+    
+      fail-fast: true
+    
+    steps:
+      - uses: actions/setup-python@v1
+        with:
+          python-version: "${{ matrix.python }}"
+      
+      - uses: ./
+
+      - run: rez --version
+      - run: rez config local_packages_path
+      - run: rez config release_packages_path
+      - run: rez config packages_path
+      
+
+    
