@@ -75,7 +75,7 @@ async function run() {
 
             let line = ''
             for (line of output.trim().replace(/^- /m, '').split("\n")) {
-                await io.mkdirP(line);
+                await fs.mkdir(line, {recursive: true});
             }
         }
 
@@ -87,7 +87,7 @@ async function run() {
             await exec.exec('rez', ['config', 'local_packages_path'], {
                 listeners: {stdout: (data) => (output += data.toString())},
             })
-            await io.mkdirP(output);
+            await fs.mkdir(output, {recursive: true});
             
             let pkg = '';
             for (pkg of binds.trim().split(",")) {
