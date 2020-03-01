@@ -9,13 +9,16 @@ inputs:
     description: "Git tag/branch/commit to use."
     required: false
     default: 'master'
-  path:
-    description: "Path to installation root with src subfolder."
+  makePackagesPaths:
+    description: Create all default "rez config packages_path".
     required: false
-    default: '.rez'
-# outputs:
-#   rez: # id of output
-#     description: 'Path to the rez CLI script.'
+    default: true
+  binds:
+    description: >
+      Packages to rez bind, see "rez bind --list". Will force the
+      creation of "rez config local_packages_path"
+    required: false
+    default: ['os']
 runs:
   using: 'node12'
   main: 'index.js'

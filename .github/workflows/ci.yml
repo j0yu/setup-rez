@@ -7,7 +7,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, macosx-latest, windows-latest]
+        os: [ubuntu-latest, macOS-latest, windows-latest]
         python: [2.7, 3.7]
     
       fail-fast: true
