@@ -13,9 +13,9 @@ inputs:
     description: "Path to installation root with src subfolder."
     required: false
     default: '.rez'
-outputs:
-  rez: # id of output
-    description: 'Path to the rez CLI script.'
+# outputs:
+#   rez: # id of output
+#     description: 'Path to the rez CLI script.'
 runs:
   using: 'node12'
   main: 'index.js'
