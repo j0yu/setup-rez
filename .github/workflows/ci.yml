@@ -8,13 +8,12 @@ jobs:
     strategy:
       matrix:
         os:
-        # - ubuntu-latest
-        # - macOS-latest
+        - ubuntu-latest
+        - macOS-latest
         - windows-latest
-        python: 
-        # - 2.7
+        python:
+        - 2.7
         - 3.7
-
       fail-fast: true
 
     steps:
@@ -31,3 +30,35 @@ jobs:
       - run: rez config packages_path
       - run: rez view os
       - run: rez view python
+
+  inputs:
+    name: ${{ matrix.ref }}@${{ matrix.source }}:${{ matrix.makePackagesPaths }} ${{ matrix.binds }} 
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        source:
+        - nerdvegas/rez
+        - mottosso/bleeding-rez
+        ref:
+        - master
+        - 2.40.4
+        binds:
+        - ''
+        - 'os, python'
+        - 'setuptools, pip'
+        makePackagesPaths:
+        - true
+        - false
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v1
+        with:
+          python-version: 3.7
+
+      - uses: ./
+        with:
+          source: ${{ matrix.source }}
+          ref: ${{ matrix.ref }}
+          binds: ${{ matrix.binds }}
+          makePackagesPaths: ${{ matrix.makePackagesPaths }}
