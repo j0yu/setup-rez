@@ -47,6 +47,26 @@ async function installRez() {
     const rezInstallPath = await tc.extractTar(rezTarPath);
     core.debug(`..."${rezInstallPath}", finding...`);
 
+    /* NOTES on install style availability:
+     *
+     *                       | pip install | install.py
+     * nerdvegas/rez         | 2.33.0+     | Always
+     * mottosso/bleeding-rez | Always      | NEVER
+     *
+     * In order or priority...
+     *
+     * 1. install.py:
+     *     - Check if install.py exists
+     *     - python SRC/install.py DEST
+     *     - export PATH=DEST/bin/rez
+     *
+     * 2. pip:
+     *     - Check if setup.py exists
+     *     - pip install --target DEST SRC
+     *     - export PATH=DEST/bin
+     *
+     * 3. throw error
+     */
     const rezInstallPy = await getInstallPy(rezInstallPath);
     core.debug(`..."${rezInstallPy}"`);
 
@@ -63,7 +83,7 @@ async function installRez() {
 async function makePackagesPaths() {
     let output = '';
     let line = ''
-    
+
     await exec.exec('rez', ['config', 'packages_path'], {
         listeners: {stdout: (data) => (output += data.toString())},
     })
