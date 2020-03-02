@@ -3,7 +3,7 @@ on: [push]
 
 jobs:
   test:
-    name: Testing on ${{ matrix.os }} Py${{ matrix.python }}
+    name: ${{ matrix.os }} Py${{ matrix.python }}
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -35,13 +35,14 @@ jobs:
     name: ${{ matrix.ref }}@${{ matrix.source }}:${{ matrix.makePackagesPaths }} ${{ matrix.binds }} 
     runs-on: ubuntu-latest
     strategy:
+      max-parallel: 10
       matrix:
         source:
         - nerdvegas/rez
         - mottosso/bleeding-rez
         ref:
         - master
-        - 2.40.4
+        - 2.33.0
         binds:
         - ''
         - 'os, python'
@@ -50,11 +51,16 @@ jobs:
         - true
         - false
 
+        # Not sure how to handle master@mottosso/bleeding-rez, PR anyone?
+        exclude:
+          - source: mottosso/bleeding-rez
+            ref: master
+
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v1
         with:
-          python-version: 3.7
+          python-version: 2.7
 
       - uses: ./
         with:
@@ -62,3 +68,5 @@ jobs:
           ref: ${{ matrix.ref }}
           binds: ${{ matrix.binds }}
           makePackagesPaths: ${{ matrix.makePackagesPaths }}
+
+      - run: rez status
