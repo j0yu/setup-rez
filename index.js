@@ -36,9 +36,9 @@ async function installRez() {
     // Collect parameters and cache, if any
     const rezGitRepo = core.getInput('source');
     const gitRef = core.getInput('ref');
-    var cachedRezPath = tc.find(rezGitRepo, gitRef);
-    if (cachedRezPath.length) {
-        return cachedRezPath;
+    var cachedBinPath = tc.find(rezGitRepo, gitRef);
+    if (cachedBinPath.length) {
+        return cachedBinPath;
     }
 
     const downloadURL = `https://github.com/${rezGitRepo}/archive/${gitRef}.tar.gz`;
@@ -72,9 +72,13 @@ async function installRez() {
      */
     let exeArgs = [];
     let filePath = ''
+    const binFolder = ((process.platform == 'win32') ? 'Scripts': 'bin');
+    let rezBinPath = '';
+
     try {
         filePath = await getRepoRootFile('install.py', rezInstallPath);
         exeArgs = ['python', filePath, rezInstallPath];
+        rezBinPath = path.join(rezInstallPath, binFolder, 'rez');
     } catch (error) {
         if (error.name != 'MissingFileError') {
             throw error
@@ -82,6 +86,7 @@ async function installRez() {
         exeArgs = ['pip', 'install', '--target', rezInstallPath];
         filePath = await getRepoRootFile('setup.py', rezInstallPath);
         exeArgs.push(path.dirname(filePath));
+        rezBinPath = path.join(rezInstallPath, binFolder);
     }
     // const installCommand = exeArgs.join(" ")
     const installExe = exeArgs.shift()
@@ -90,17 +95,9 @@ async function installRez() {
     // core.debug(`${installCommand}`);
     await exec.exec(installExe, exeArgs);
 
-    core.info(["rezInstallPath:", typeof rezInstallPath].join(" "))
-    core.info(rezInstallPath)
-    core.info(["rezGitRepo:", typeof rezGitRepo].join(" "))
-    core.info(rezGitRepo)
-    core.info(["gitRef:", typeof gitRef].join(" "))
-    core.info(gitRef)
-    cachedRezPath = await tc.cacheDir(rezInstallPath, rezGitRepo, gitRef);
-    core.info(["cachedRezPath:", typeof cachedRezPath].join(" "))
-    core.info(cachedRezPath)
-    core.debug(`...(cached) "${cachedRezPath}"`);
-    return cachedRezPath;
+    cachedBinPath = await tc.cacheDir(rezBinPath, rezGitRepo, gitRef);
+    core.debug(`...(cached) "${cachedBinPath}"`);
+    return cachedBinPath;
 }
 
 
@@ -119,11 +116,7 @@ async function makePackagesPaths() {
 
 async function run() {
     try {
-        const rezInstallPath = installRez()
-
-        // Add install rez CLI tools to PATH
-        const binFolder = ((process.platform == 'win32') ? 'Scripts': 'bin');
-        const rezBinPath = path.join(rezInstallPath, binFolder, 'rez');
+        const rezBinPath = await installRez();
         core.addPath(rezBinPath);
         core.debug(`Added "${rezBinPath}" to PATH`);
 
