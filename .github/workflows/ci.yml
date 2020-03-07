@@ -9,11 +9,11 @@ jobs:
       matrix:
         os:
         - ubuntu-latest
-        - macOS-latest
-        - windows-latest
+        # - macOS-latest
+        # - windows-latest
         python:
         - 2.7
-        - 3.7
+        # - 3.7
       fail-fast: true
 
     steps:
@@ -31,42 +31,37 @@ jobs:
       - run: rez view os
       - run: rez view python
 
-  inputs:
-    name: ${{ matrix.ref }}@${{ matrix.source }}:${{ matrix.makePackagesPaths }} ${{ matrix.binds }} 
-    runs-on: ubuntu-latest
-    strategy:
-      max-parallel: 10
-      matrix:
-        source:
-        - nerdvegas/rez
-        - mottosso/bleeding-rez
-        ref:
-        - master
-        - 2.33.0
-        binds:
-        - ''
-        - 'os, python'
-        - 'setuptools, pip'
-        makePackagesPaths:
-        - true
-        - false
+  # inputs:
+  #   name: ${{ matrix.ref }}@${{ matrix.source }}:${{ matrix.makePackagesPaths }} ${{ matrix.binds }} 
+  #   runs-on: ubuntu-latest
+  #   strategy:
+  #     max-parallel: 10
+  #     matrix:
+  #       source:
+  #       - nerdvegas/rez
+  #       - mottosso/bleeding-rez
+  #       ref:
+  #       - master
+  #       - 2.33.0
+  #       binds:
+  #       - ''
+  #       - 'os, python'
+  #       - 'setuptools, pip'
+  #       makePackagesPaths:
+  #       - true
+  #       - false
 
-        # # Not sure how to handle master@mottosso/bleeding-rez, PR anyone?
-        # exclude:
-        #   - source: mottosso/bleeding-rez
-        #     ref: master
+  #   steps:
+  #     - uses: actions/checkout@v2
+  #     - uses: actions/setup-python@v1
+  #       with:
+  #         python-version: 2.7
 
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v1
-        with:
-          python-version: 2.7
+  #     - uses: ./
+  #       with:
+  #         source: ${{ matrix.source }}
+  #         ref: ${{ matrix.ref }}
+  #         binds: ${{ matrix.binds }}
+  #         makePackagesPaths: ${{ matrix.makePackagesPaths }}
 
-      - uses: ./
-        with:
-          source: ${{ matrix.source }}
-          ref: ${{ matrix.ref }}
-          binds: ${{ matrix.binds }}
-          makePackagesPaths: ${{ matrix.makePackagesPaths }}
-
-      - run: rez status
+  #     - run: rez status

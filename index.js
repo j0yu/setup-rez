@@ -70,12 +70,11 @@ async function installRez() {
      *
      * 3. throw error
      */
-    let exeArgs = ['python'];
+    let exeArgs = [];
     let filePath = ''
     try {
         filePath = await getRepoRootFile('install.py', rezInstallPath);
-        exeArgs.push(filePath);
-        exeArgs.push(rezInstallPath);
+        exeArgs = ['python', filePath, rezInstallPath];
     } catch (error) {
         if (error.name != 'MissingFileError') {
             throw error
@@ -84,14 +83,22 @@ async function installRez() {
         filePath = await getRepoRootFile('setup.py', rezInstallPath);
         exeArgs.push(path.dirname(filePath));
     }
-    const installCommand = exeArgs.join(" ")
+    // const installCommand = exeArgs.join(" ")
     const installExe = exeArgs.shift()
 
     core.info("Installing...")
-    core.debug(`${installCommand}`);
+    // core.debug(`${installCommand}`);
     await exec.exec(installExe, exeArgs);
 
+    core.info(["rezInstallPath:", typeof rezInstallPath].join(" "))
+    core.info(rezInstallPath)
+    core.info(["rezGitRepo:", typeof rezGitRepo].join(" "))
+    core.info(rezGitRepo)
+    core.info(["gitRef:", typeof gitRef].join(" "))
+    core.info(gitRef)
     cachedRezPath = await tc.cacheDir(rezInstallPath, rezGitRepo, gitRef);
+    core.info(["cachedRezPath:", typeof cachedRezPath].join(" "))
+    core.info(cachedRezPath)
     core.debug(`...(cached) "${cachedRezPath}"`);
     return cachedRezPath;
 }
