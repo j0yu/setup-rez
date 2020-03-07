@@ -51,10 +51,10 @@ jobs:
         - true
         - false
 
-        # Not sure how to handle master@mottosso/bleeding-rez, PR anyone?
-        exclude:
-          - source: mottosso/bleeding-rez
-            ref: master
+        # # Not sure how to handle master@mottosso/bleeding-rez, PR anyone?
+        # exclude:
+        #   - source: mottosso/bleeding-rez
+        #     ref: master
 
     steps:
       - uses: actions/checkout@v2

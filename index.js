@@ -8,7 +8,7 @@ const process = require('process');
 const tc = require('@actions/tool-cache');
 
 
-async function getInstallPy(extractedPath) {
+async function getRepoRootFile(fileName, extractedPath) {
     // Tarball extracts to repo name + git ref sub-folder
     const extractDir = await fs.promises.opendir(extractedPath);
 
@@ -18,14 +18,17 @@ async function getInstallPy(extractedPath) {
             const srcDir = await fs.promises.opendir(srcFolder);
 
             for await (const srcDirent of srcDir) {
-                if (srcDirent.name == 'install.py' && srcDirent.isFile()) {
+                if (srcDirent.name == fileName && srcDirent.isFile()) {
                     return path.join(srcFolder, srcDirent.name);
                 }
             }
         }
     }
-    const globPath = path.join(extractedPath, '*', 'install.py');
-    throw `Could not find ${globPath}`;
+    const globPath = path.join(extractedPath, '*', fileName)
+    throw {
+        'name': 'MissingFileError',
+        'message': `Could not find ${globPath}`,
+    };
 }
 
 
@@ -67,12 +70,23 @@ async function installRez() {
      *
      * 3. throw error
      */
-    const rezInstallPy = await getInstallPy(rezInstallPath);
-    core.debug(`..."${rezInstallPy}"`);
+    let exe_args = ['python'];
+    try {
+        exe_args.push(await getRepoRootFile('install.py', rezInstallPath));
+        exe_args.push(rezInstallPath);
+    } catch (error) {
+        if (error.name != 'MissingFileError') {
+            throw error
+        }
+        exe_args = ['pip', 'install', '--target', rezInstallPath];
+        exe_args.push(path.dirname(await getRepoRootFile('setup.py', rezInstallPath)));
+    }
+    const installCommand = exe_args.join(" ")
+    const installExe = exe_args.shift()
 
     core.info("Installing...")
-    core.debug(`python ${rezInstallPy} ${rezInstallPath}`);
-    await exec.exec('python', [rezInstallPy, rezInstallPath]);
+    core.debug(`${installCommand}`);
+    await exec.exec(installExe, exe_args);
 
     cachedRezPath = await tc.cacheDir(rezInstallPath, rezGitRepo, gitRef);
     core.debug(`...(cached) "${cachedRezPath}"`);
