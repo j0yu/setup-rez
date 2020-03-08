@@ -25,6 +25,7 @@ jobs:
         git checkout -B gh-pages
         git config user.name "${{ github.actor }}"
         git config user.email "${{ github.actor }}@${{ github.sha }}"
+        touch .nojekyll
         git add .
         git commit \
           -m "Generated from GitHub "${{ github.workflow }}" Workflow" \
@@ -77,7 +78,7 @@ jobs:
         binds:
         - ''
         - 'os, python'
-        - 'setuptools, pip'
+        - 'pip'
         makePackagesPaths:
         - true
         - false
