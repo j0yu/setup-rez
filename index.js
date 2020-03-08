@@ -8,22 +8,32 @@ const process = require('process');
 const tc = require('@actions/tool-cache');
 
 
-async function getRepoRootFile(fileName, extractedPath) {
-    // Tarball extracts to repo name + git ref sub-folder
-    const extractDir = await fs.promises.opendir(extractedPath);
-
+async function getDirentPath(dirPath, func) {
+    const extractDir = await fs.promises.opendir(dirPath);
     for await (const dirent of extractDir) {
-        if (dirent.isDirectory()) {
-            srcFolder = path.join(extractedPath, dirent.name);
-            const srcDir = await fs.promises.opendir(srcFolder);
-
-            for await (const srcDirent of srcDir) {
-                if (srcDirent.name == fileName && srcDirent.isFile()) {
-                    return path.join(srcFolder, srcDirent.name);
-                }
-            }
+        if (func(dirent)) {
+            return path.join(extractedPath, dirent.name);
         }
     }
+    return null;
+}
+
+async function getRepoRootFile(fileName, extractedPath) {
+    // Tarball extracts to repo name + git ref sub-folder
+    const srcFolder = await getDirentPath(
+        extractedPath,
+        (dirent) => {return dirent.isDirectory()},
+    );
+    if (srcFolder) {
+        const filePath = await getDirentPath(
+            srcFolder,
+            (dirent) => {return dirent.isFile() && dirent.name == fileName},
+        );
+        if (filePath) {
+            return filePath;
+        }
+    }
+
     const globPath = path.join(extractedPath, '*', fileName)
     throw {
         'name': 'MissingFileError',
