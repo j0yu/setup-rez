@@ -12,7 +12,7 @@ async function getDirentPath(dirPath, func) {
     const extractDir = await fs.promises.opendir(dirPath);
     for await (const dirent of extractDir) {
         if (func(dirent)) {
-            return path.join(extractedPath, dirent.name);
+            return path.join(dirPath, dirent.name);
         }
     }
     return null;
