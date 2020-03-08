@@ -139,26 +139,34 @@ async function makePackagesPaths() {
     }
 }
 
+function addToEnv(envPaths) {
+    let paths = [];
+    let newPath = '';
+    let currentPath = '';
+
+    for (varName in envPaths) {
+        if (varName == 'PATH') {
+            envPaths[varName].forEach(element => {core.addPath(element)});
+        } else {
+            currentPath = process.env[varName];
+            if (currentPath) {
+                paths = currentPath.split(path.delimiter);
+                paths.concat(envPaths[varName]);
+            } else {
+                paths = envPaths[varName];
+            }
+            newPath = paths.join(path.delimiter);
+            core.exportVariable(varName, newPath);
+            currentPath = newPath;
+        }
+    }
+}
 
 async function run() {
     try {
         // Export relevant env vars for a rez install
-        const rezInstall = await installRez();
-        let paths = [];
-        for (varName in rezInstall) {
-            if (varName == 'PATH') {
-                rezInstall[varName].forEach(element => {core.addPath(element)});
-            } else {
-                if (process.env[varName]) {
-                    paths = process.env[varName].split(path.delimiter)
-                    paths.concat(rezInstall[varName])
-                } else {
-                    paths = rezInstall[varName]
-                }
-                core.exportVariable(varName, paths.join(path.delimiter))
-                process.env[varName] = paths.join(path.delimiter)
-            }
-        }
+        const rezInstallEnvs = await installRez();
+        addToEnv(rezInstallEnvs);
 
         // Create all packages_path folders
         if (core.getInput('makePackagesPaths')) {
