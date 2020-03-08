@@ -46,9 +46,19 @@ async function installRez() {
     // Collect parameters and cache, if any
     const rezGitRepo = core.getInput('source');
     const gitRef = core.getInput('ref');
-    var cachedBinPath = tc.find(rezGitRepo, gitRef);
-    if (cachedBinPath.length) {
-        return cachedBinPath;
+
+    var rezInstallPath = tc.find(rezGitRepo, gitRef);
+    if (rezInstallPath.length) {
+        var manifestData = null;
+        const manifestPath = path.join(rezInstallPath, 'setup.json')
+        try {
+            manifestData = fs.readFileSync(manifestPath);
+        } catch (error) {
+            if (error.code != 'ENOENT') throw error
+        }
+        if (manifestData) {
+            return JSON.parse(manifestData);
+        };
     }
 
     const downloadURL = `https://github.com/${rezGitRepo}/archive/${gitRef}.tar.gz`;
@@ -57,7 +67,7 @@ async function installRez() {
     const rezTarPath = await tc.downloadTool(downloadURL);
     core.debug(`as "${rezTarPath}", extracting into...`);
 
-    const rezInstallPath = await tc.extractTar(rezTarPath);
+    rezInstallPath = await tc.extractTar(rezTarPath);
     core.debug(`..."${rezInstallPath}", finding...`);
 
     /* NOTES on install style availability:
@@ -83,12 +93,12 @@ async function installRez() {
     let exeArgs = [];
     let filePath = ''
     const binFolder = ((process.platform == 'win32') ? 'Scripts': 'bin');
-    let rezBinPath = '';
+    let rezInstall = {};
 
     try {
         filePath = await getRepoRootFile('install.py', rezInstallPath);
         exeArgs = ['python', filePath, rezInstallPath];
-        rezBinPath = path.join(rezInstallPath, binFolder, 'rez');
+        rezInstall['PATH'] = [path.join(rezInstallPath, binFolder, 'rez')];
     } catch (error) {
         if (error.name != 'MissingFileError') {
             throw error
@@ -96,7 +106,8 @@ async function installRez() {
         exeArgs = ['pip', 'install', '--target', rezInstallPath];
         filePath = await getRepoRootFile('setup.py', rezInstallPath);
         exeArgs.push(path.dirname(filePath));
-        rezBinPath = path.join(rezInstallPath, binFolder);
+        rezInstall['PATH'] = [path.join(rezInstallPath, binFolder)];
+        rezInstall['PYTHONPATH'] = [rezInstallPath];
     }
     // const installCommand = exeArgs.join(" ")
     const installExe = exeArgs.shift()
@@ -105,9 +116,14 @@ async function installRez() {
     // core.debug(`${installCommand}`);
     await exec.exec(installExe, exeArgs);
 
-    cachedBinPath = await tc.cacheDir(rezBinPath, rezGitRepo, gitRef);
-    core.debug(`...(cached) "${cachedBinPath}"`);
-    return cachedBinPath;
+    fs.writeFileSync(
+        path.join(rezInstallPath, 'setup.json'), 
+        JSON.stringify(rezInstall),
+    )
+    await tc.cacheDir(rezInstallPath, rezGitRepo, gitRef);
+    core.debug(`...(cached) "${rezInstallPath}" with setup.json`);
+
+    return rezInstall;
 }
 
 
@@ -126,9 +142,14 @@ async function makePackagesPaths() {
 
 async function run() {
     try {
-        const rezBinPath = await installRez();
-        core.addPath(rezBinPath);
-        core.debug(`Added "${rezBinPath}" to PATH`);
+        // Export relevant env vars for a rez install
+        const rezInstall = await installRez();
+        let paths = [];
+        for (varName in rezInstall) {
+            paths = process.env[varName].split(path.delimiter)
+            paths.concat(rezInstall[varName])
+            core.exportVariable(varName, paths.join(path.delimiter))
+        }
 
         // Create all packages_path folders
         if (core.getInput('makePackagesPaths')) {
