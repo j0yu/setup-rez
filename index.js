@@ -146,9 +146,18 @@ async function run() {
         const rezInstall = await installRez();
         let paths = [];
         for (varName in rezInstall) {
-            paths = process.env[varName].split(path.delimiter)
-            paths.concat(rezInstall[varName])
-            core.exportVariable(varName, paths.join(path.delimiter))
+            if (varName == 'PATH') {
+                rezInstall[varName].forEach(element => {core.addPath(element)});
+            } else {
+                if (process.env[varName]) {
+                    paths = process.env[varName].split(path.delimiter)
+                    paths.concat(rezInstall[varName])
+                } else {
+                    paths = rezInstall[varName]
+                }
+                core.exportVariable(varName, paths.join(path.delimiter))
+                process.env[varName] = paths.join(path.delimiter)
+            }
         }
 
         // Create all packages_path folders
