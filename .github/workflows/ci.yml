@@ -78,7 +78,7 @@ jobs:
         binds:
         - ''
         - 'os, python'
-        - 'pip'
+        - 'rez, hello_world'
         makePackagesPaths:
         - true
         - false
