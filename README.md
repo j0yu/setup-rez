@@ -40,22 +40,12 @@ on: [push]
 
 jobs:
   test:
-    name: Testing on ${{ matrix.os }} Py${{ matrix.python }}
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os:
-        - ubuntu-latest
-        - macOS-latest
-        - windows-latest
-        python:
-        - 2.7
-        - 3.7
-
+    name: Test
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/setup-python@v1
         with:
-          python-version: "${{ matrix.python }}"
+          python-version: 2.7
 
       # Using custom rez repository and version
       - uses: j0yu/setup-rez@v1
@@ -75,6 +65,29 @@ jobs:
       - uses: actions/checkout@v2
       - run: rez build --install
 ```
+
+## How it works
+
+NOTES on install style availability:
+
+Rez                   | pip install | install.py
+----------------------|-------------|------------
+nerdvegas/rez         | 2.33.0+     | Always
+mottosso/bleeding-rez | Always      | NEVER
+
+In order or priority...
+
+1. install.py:
+  - Check if install.py exists
+  - python SRC/install.py DEST
+  - export PATH=DEST/bin/rez
+
+2. pip:
+  - Check if setup.py exists
+  - pip install --target DEST SRC
+  - export PATH=DEST/bin
+
+3. throw error
 
 ## Developing
 

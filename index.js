@@ -9,10 +9,11 @@ const tc = require('@actions/tool-cache');
 
 
 /**
- * Get full path to a fs.Dirent directly under the given folder.
+ * Get full path to a <pre>fs.Dirent</pre> directly under the given folder.
+ * @see {@link https://nodejs.org/dist/latest-v12.x/docs/api/fs.html#fs_class_fs_dirent|fs.Dirent}
  * @param {string} dirPath Path to folder to look into.
  * @param {Function} func Callback that returns a boolean on when the
- *                        right fs.Dirent is found.
+ * right <pre>fs.Dirent</pre> is found.
  * @returns {(string|null)} Path to dirent that satisfies func, else null.
  */
 async function getDirentPath(dirPath, func) {
@@ -30,7 +31,7 @@ async function getDirentPath(dirPath, func) {
  * @param {string} fileName Filename to get from extracted repository root.
  * @param {string} extractedPath Path to extracted tar/zip repository folder.
  * @throws {MissingFileError} If filename not found directly under the 
- *                            repository root directory.
+ * repository root directory.
  */
 async function getRepoRootFile(fileName, extractedPath) {
     // Tarball extracts to repo name + git ref sub-folder
@@ -56,38 +57,24 @@ async function getRepoRootFile(fileName, extractedPath) {
 }
 
 /**
+ * 
+ * @typedef envPaths
+ * @type object
+ * @property {string[]} ENV_VAR_NAMES... Array of paths to add per
+ * environment variable.
+ */
+
+/**
  *
  * Installs rez.
  *
  * Fetches from GitHub tools cache if previously installed, else extract
  * and install from the given GitHub repository link and Git ref.
  *
- * NOTES on install style availability:
- *
- *                       | pip install | install.py
- * nerdvegas/rez         | 2.33.0+     | Always
- * mottosso/bleeding-rez | Always      | NEVER
- *
- * In order or priority...
- *
- * 1. install.py:
- *     - Check if install.py exists
- *     - python SRC/install.py DEST
- *     - export PATH=DEST/bin/rez
- *
- * 2. pip:
- *     - Check if setup.py exists
- *     - pip install --target DEST SRC
- *     - export PATH=DEST/bin
- *
- * 3. throw error
- *
- * @param {string} rezGitRepo <user/org>/<repository name>
+ * @param {string} rezGitRepo "user or org"/"repository name"
  * @param {string} gitRef master or commit hash or tag name or branch name.
- * @returns {object} envPaths - Environment variable names and paths to add for
- *                              them to setup the installed/cached rez install.
- * @returns {string[]} envPaths.* - Array of paths to add for environment
- *                                  variable.
+ * @returns {envPaths} Environment variable names and paths to add for
+ * them to setup the installed/cached rez install.
  */
 async function installRez(rezGitRepo, gitRef) {
     var rezInstallPath = tc.find(rezGitRepo, gitRef);
@@ -150,10 +137,11 @@ async function installRez(rezGitRepo, gitRef) {
  * Create rez packages paths.
  *
  * These typically are:
- *
- * - $HOME/packages
- * - $HOME/.rez/packages/int
- * - $HOME/.rez/packages/ext
+ * <ul font-family=monospace>
+ *  <li>$HOME/packages</li>
+ *  <li>$HOME/.rez/packages/int</li>
+ *  <li>$HOME/.rez/packages/ext</li>
+ * </ul>
  */
 async function makePackagesPaths() {
     let output = '';
