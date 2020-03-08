@@ -2,6 +2,33 @@ name: CI
 on: [push]
 
 jobs:
+  docs:
+    name: JSDocs
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/setup-node@v1
+      with:
+        node-version: '12.x'
+    - run: npm install jsdoc
+    - run: ./node_modules/.bin/jsdoc index.js
+    - uses: actions/upload-artifact@v1
+      with:
+        name: jsdoc
+        path: out
+    # - name: WIP push to new GitHub pages
+    #   run: |
+    #     mv .git out/.git
+    #     cd out
+    #     git checkout -B gh-pages
+    #     git add *
+    #     git config user.name ${{ github.actor }}
+    #     git config user.email bot@github.com
+    #     git commit -m 'Created docs from ${{ github.sha }}'
+    #     git push --force origin gh-pages:gh-pages
+
+
   test:
     name: ${{ matrix.os }} Py${{ matrix.python }}
     runs-on: ${{ matrix.os }}
