@@ -8,6 +8,13 @@ const process = require('process');
 const tc = require('@actions/tool-cache');
 
 
+/**
+ * Get full path to a fs.Dirent directly under the given folder.
+ * @param {string} dirPath Path to folder to look into.
+ * @param {Function} func Callback that returns a boolean on when the
+ *                        right fs.Dirent is found.
+ * @returns {(string|null)} Path to dirent that satisfies func, else null.
+ */
 async function getDirentPath(dirPath, func) {
     const extractDir = await fs.promises.opendir(dirPath);
     for await (const dirent of extractDir) {
@@ -18,6 +25,13 @@ async function getDirentPath(dirPath, func) {
     return null;
 }
 
+/**
+ * Get the file path to a file in the extracted repository root folder.
+ * @param {string} fileName Filename to get from extracted repository root.
+ * @param {string} extractedPath Path to extracted tar/zip repository folder.
+ * @throws {MissingFileError} If filename not found directly under the 
+ *                            repository root directory.
+ */
 async function getRepoRootFile(fileName, extractedPath) {
     // Tarball extracts to repo name + git ref sub-folder
     const srcFolder = await getDirentPath(
@@ -41,12 +55,41 @@ async function getRepoRootFile(fileName, extractedPath) {
     };
 }
 
-
-async function installRez() {
-    // Collect parameters and cache, if any
-    const rezGitRepo = core.getInput('source');
-    const gitRef = core.getInput('ref');
-
+/**
+ *
+ * Installs rez.
+ *
+ * Fetches from GitHub tools cache if previously installed, else extract
+ * and install from the given GitHub repository link and Git ref.
+ *
+ * NOTES on install style availability:
+ *
+ *                       | pip install | install.py
+ * nerdvegas/rez         | 2.33.0+     | Always
+ * mottosso/bleeding-rez | Always      | NEVER
+ *
+ * In order or priority...
+ *
+ * 1. install.py:
+ *     - Check if install.py exists
+ *     - python SRC/install.py DEST
+ *     - export PATH=DEST/bin/rez
+ *
+ * 2. pip:
+ *     - Check if setup.py exists
+ *     - pip install --target DEST SRC
+ *     - export PATH=DEST/bin
+ *
+ * 3. throw error
+ *
+ * @param {string} rezGitRepo <user/org>/<repository name>
+ * @param {string} gitRef master or commit hash or tag name or branch name.
+ * @returns {object} envPaths - Environment variable names and paths to add for
+ *                              them to setup the installed/cached rez install.
+ * @returns {string[]} envPaths.* - Array of paths to add for environment
+ *                                  variable.
+ */
+async function installRez(rezGitRepo, gitRef) {
     var rezInstallPath = tc.find(rezGitRepo, gitRef);
     if (rezInstallPath.length) {
         var manifestData = null;
@@ -61,39 +104,16 @@ async function installRez() {
         };
     }
 
+    let exeArgs = [];
+    let filePath = '';
+    let rezInstall = {};
+    const binFolder = ((process.platform == 'win32') ? 'Scripts': 'bin');
+
     const downloadURL = `https://github.com/${rezGitRepo}/archive/${gitRef}.tar.gz`;
     core.info(`Downloading "${downloadURL}"...`);
 
     const rezTarPath = await tc.downloadTool(downloadURL);
-    core.debug(`as "${rezTarPath}", extracting into...`);
-
     rezInstallPath = await tc.extractTar(rezTarPath);
-    core.debug(`..."${rezInstallPath}", finding...`);
-
-    /* NOTES on install style availability:
-     *
-     *                       | pip install | install.py
-     * nerdvegas/rez         | 2.33.0+     | Always
-     * mottosso/bleeding-rez | Always      | NEVER
-     *
-     * In order or priority...
-     *
-     * 1. install.py:
-     *     - Check if install.py exists
-     *     - python SRC/install.py DEST
-     *     - export PATH=DEST/bin/rez
-     *
-     * 2. pip:
-     *     - Check if setup.py exists
-     *     - pip install --target DEST SRC
-     *     - export PATH=DEST/bin
-     *
-     * 3. throw error
-     */
-    let exeArgs = [];
-    let filePath = ''
-    const binFolder = ((process.platform == 'win32') ? 'Scripts': 'bin');
-    let rezInstall = {};
 
     try {
         filePath = await getRepoRootFile('install.py', rezInstallPath);
@@ -117,7 +137,7 @@ async function installRez() {
     await exec.exec(installExe, exeArgs);
 
     fs.writeFileSync(
-        path.join(rezInstallPath, 'setup.json'), 
+        path.join(rezInstallPath, 'setup.json'),
         JSON.stringify(rezInstall),
     )
     await tc.cacheDir(rezInstallPath, rezGitRepo, gitRef);
@@ -126,10 +146,17 @@ async function installRez() {
     return rezInstall;
 }
 
-
+/**
+ * Create rez packages paths.
+ *
+ * These typically are:
+ *
+ * - $HOME/packages
+ * - $HOME/.rez/packages/int
+ * - $HOME/.rez/packages/ext
+ */
 async function makePackagesPaths() {
     let output = '';
-    let line = ''
 
     await exec.exec('rez', ['config', 'packages_path'], {
         listeners: {stdout: (data) => (output += data.toString())},
@@ -139,15 +166,21 @@ async function makePackagesPaths() {
     }
 }
 
-function addToEnv(envPaths) {
+/**
+ * Add given environment variable paths to current process.env
+ * @param {object} envPaths Environment names mapped to a list of paths to add.
+ */
+function addPathsToEnvs(envPaths) {
     let paths = [];
     let newPath = '';
     let currentPath = '';
 
     for (varName in envPaths) {
         if (varName == 'PATH') {
+            // Make rez bin available for binding later, if any
             envPaths[varName].forEach(element => {core.addPath(element)});
         } else {
+            // Add to current process.env so exec.exec will also pick it up
             currentPath = process.env[varName];
             if (currentPath) {
                 paths = currentPath.split(path.delimiter);
@@ -162,11 +195,15 @@ function addToEnv(envPaths) {
     }
 }
 
+/**
+ * Installs or fetch cached rez install. Setup packages path and binds if any.
+ */
 async function run() {
     try {
         // Export relevant env vars for a rez install
-        const rezInstallEnvs = await installRez();
-        addToEnv(rezInstallEnvs);
+        addPathsToEnvs(
+            await installRez(core.getInput('source'), core.getInput('ref'))
+        );
 
         // Create all packages_path folders
         if (core.getInput('makePackagesPaths')) {
@@ -183,7 +220,6 @@ async function run() {
             await io.mkdirP(output.trimRight());
 
             // Create bind per package name (comma separated, remove whitespace)
-            let pkg = '';
             for (pkg of binds.trim().split(",")) {
                 await exec.exec('rez', ['bind', pkg.trim()]);
             }
