@@ -32,7 +32,8 @@ Github Action to setup [rez] package system.
 
 ## Example
 
-Includes a lot of [rez] example commands and outputs.
+Make sure you run [actions/setup-python](github.com/actions/setup-python)
+before using [j0yu/setup-rez](github.com/j0yu/setup-rez)
 
 ```yaml
 name: CI
@@ -68,26 +69,29 @@ jobs:
 
 ## How it works
 
-NOTES on install style availability:
+Everything is done in the `run` function in `index.js`:
 
-Rez                   | pip install | install.py
-----------------------|-------------|------------
-nerdvegas/rez         | 2.33.0+     | Always
-mottosso/bleeding-rez | Always      | NEVER
+1. Get cached install for the `source` and `ref` input combination
+1. If there is no installs/tools cache install rez:
+    1. Downloads and extracts from `https://github.com/${source}/archive/${ref}.tar.gz`
+    1. If `install.py` exists, install via `python install.py DEST`
+    
+         else, if `setup.py` exists, install via `pip install --target DEST SRC`
+    1. Store required environment variable paths to append in a `setup.json`
+1. Load and append environment variables paths from `setup.json`
 
-In order or priority...
+   Typically `PATH` for `rez` command, `PYTHONPATH` if used `pip install --target`.
 
-1. install.py:
-  - Check if install.py exists
-  - python SRC/install.py DEST
-  - export PATH=DEST/bin/rez
+1. Create any `rez config package_paths` folders if required.
+1. Create any `rez bind PKG...` packages if required.
 
-2. pip:
-  - Check if setup.py exists
-  - pip install --target DEST SRC
-  - export PATH=DEST/bin
+Notes on install style availability:
 
-3. throw error
+Rez                   | (1st) install.py | (2nd) pip install 
+----------------------|------------------|------------------
+nerdvegas/rez         | Always           | 2.33.0+           
+mottosso/bleeding-rez | NEVER            | Always           
+
 
 ## Developing
 

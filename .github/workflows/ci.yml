@@ -12,21 +12,25 @@ jobs:
       with:
         node-version: '12.x'
     - run: npm install jsdoc
-    - run: ./node_modules/.bin/jsdoc index.js
+    - run: ./node_modules/.bin/jsdoc index.js README.md
     - uses: actions/upload-artifact@v1
       with:
         name: jsdoc
         path: out
-    # - name: WIP push to new GitHub pages
-    #   run: |
-    #     mv .git out/.git
-    #     cd out
-    #     git checkout -B gh-pages
-    #     git add *
-    #     git config user.name ${{ github.actor }}
-    #     git config user.email bot@github.com
-    #     git commit -m 'Created docs from ${{ github.sha }}'
-    #     git push --force origin gh-pages:gh-pages
+    - name: Force push to GitHub pages
+      # if: github.ref == 'refs/heads/master'
+      run: |
+        mv .git out/.git
+        cd out
+        git checkout -B gh-pages
+        git config user.name "${{ github.actor }}"
+        git config user.email "${{ github.actor }}@${{ github.sha }}"
+        git add .
+        git commit \
+          -m "Generated from GitHub "${{ github.workflow }}" Workflow" \
+          -m "See https://github.com/${{ github.repository }}/runs/${GITHUB_ACTION}" \
+          && git push --force origin gh-pages \
+          || echo "Nothing new to commit and push"
 
 
   test:
@@ -36,11 +40,11 @@ jobs:
       matrix:
         os:
         - ubuntu-latest
-        # - macOS-latest
-        # - windows-latest
+        - macOS-latest
+        - windows-latest
         python:
         - 2.7
-        # - 3.7
+        - 3.7
       fail-fast: true
 
     steps:
@@ -65,18 +69,18 @@ jobs:
       max-parallel: 10
       matrix:
         source:
-        # - nerdvegas/rez
+        - nerdvegas/rez
         - mottosso/bleeding-rez
         ref:
         - master
-        # - 2.33.0
+        - 2.33.0
         binds:
-        # - ''
+        - ''
         - 'os, python'
-        # - 'setuptools, pip'
+        - 'setuptools, pip'
         makePackagesPaths:
         - true
-        # - false
+        - false
 
     steps:
       - uses: actions/checkout@v2
