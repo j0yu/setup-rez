@@ -18,7 +18,7 @@ jobs:
         name: jsdoc
         path: out
     - name: Force push to GitHub pages
-      # if: github.ref == 'refs/heads/master'
+      if: github.ref == 'refs/heads/master'
       run: |
         mv .git out/.git
         cd out

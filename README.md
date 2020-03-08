@@ -1,3 +1,5 @@
+![CI](https://github.com/j0yu/setup-rez/workflows/CI/badge.svg?branch=master)
+
 # setup-rez
 
 Github Action to setup [rez] package system.
