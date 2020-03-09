@@ -1,5 +1,9 @@
 name: "Setup rez"
 description: "Install and bind rez packages."
+author: "Joseph Yu (https://github.com/j0yu)"
+branding:
+  icon: "arrow-down-circle"
+  color: "orange"
 
 inputs:
   source:
