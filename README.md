@@ -1,4 +1,4 @@
-![CI](https://github.com/j0yu/setup-rez/workflows/CI/badge.svg?branch=master)
+[![CI](https://github.com/j0yu/setup-rez/workflows/CI/badge.svg?branch=master)](https://github.com/j0yu/setup-rez/actions?query=branch%3Amaster+workflow%3ACI)
 
 # setup-rez
 
