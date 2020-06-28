@@ -1,5 +1,8 @@
 name: CI
-on: [push]
+# on: [push]
+on:
+  push:
+    tags: [never]
 
 jobs:
   docs:
@@ -33,35 +36,6 @@ jobs:
           && git push --force origin gh-pages \
           || echo "Nothing new to commit and push"
 
-
-  test-linux-containers:
-    name: ${{ matrix.os }} Py${{ matrix.python }}
-    runs-on: ubuntu-latest
-    container: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os:
-        - "centos:7"
-        python:
-        - 2.7
-        - 3.7
-      fail-fast: true
-
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v1
-        with:
-          python-version: "${{ matrix.python }}"
-
-      - run: python${{ matrix.python}} -c "import sys; print(sys.version_info)"
-      - uses: ./
-
-      - run: rez --version
-      - run: rez config local_packages_path
-      - run: rez config release_packages_path
-      - run: rez config packages_path
-      - run: rez view os
-      - run: rez view python
 
   test:
     name: ${{ matrix.os }} Py${{ matrix.python }}
