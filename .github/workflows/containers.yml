@@ -24,7 +24,8 @@ jobs:
       - run: rpm -qi glibc
       - name: Check Python
         run: |
-          if [ "${{ matrix.python }}" != "2.7" ]
+          # if [ "${{ matrix.python }}" != "2.7" ]
+          if [ "2.7" != "2.7" ]
           then
             export LD_LIBRARY_PATH="$(readlink -m $(command -v python${{ matrix.python }})/../../lib)"
             ls -l "$LD_LIBRARY_PATH"
