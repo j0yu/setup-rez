@@ -28,7 +28,7 @@ jobs:
           then
             export LD_LIBRARY_PATH="$(readlink -m $(command -v python${{ matrix.python }})/../../lib)"
             ls -l "$LD_LIBRARY_PATH"
-            find /__t/Python -name "*.so*" | sort
+            # find /__t/Python -name "*.so*" | sort
           fi
 
           ldd $(command -v python${{ matrix.python }})
