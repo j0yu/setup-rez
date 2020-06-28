@@ -9,7 +9,7 @@ jobs:
     strategy:
       matrix:
         os:
-        - "centos:7"
+        - "centos:8"
         python:
         - 2.7
         - 3.7
@@ -21,7 +21,7 @@ jobs:
         with:
           python-version: "${{ matrix.python }}"
 
-      - run: command -v python${{ matrix.python }}
+      - run: rpm -qi glibc
       - name: Check Python
         run: |
           if [ "${{ matrix.python }}" != "2.7" ]
