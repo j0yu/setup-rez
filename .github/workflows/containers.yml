@@ -22,7 +22,8 @@ jobs:
           python-version: "${{ matrix.python }}"
 
       - run: command -v python${{ matrix.python }}
-      - run: ls -l $(readlink -m $(command -v python${{ matrix.python }})/../..)
+      - run: ls -l $(readlink -m $(command -v python${{ matrix.python }})/../../lib)
+      - run: echo ":set-env LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$(readlink -m $(command -v python${{ matrix.python }})/../../lib)"
       - run: python${{ matrix.python }} -c "import sys; print(sys.version_info)"
       - uses: ./
 
