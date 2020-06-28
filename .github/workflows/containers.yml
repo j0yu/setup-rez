@@ -22,18 +22,8 @@ jobs:
           python-version: "${{ matrix.python }}"
 
       - run: rpm -qi glibc
-      - name: Check Python
-        run: |
-          # if [ "${{ matrix.python }}" != "2.7" ]
-          if [ "3.7" != "2.7" ]
-          then
-            export LD_LIBRARY_PATH="$(readlink -m $(command -v python${{ matrix.python }})/../../lib)"
-            ls -l "$LD_LIBRARY_PATH"
-            # find /__t/Python -name "*.so*" | sort
-          fi
-
-          ldd $(command -v python${{ matrix.python }})
-          python${{ matrix.python }} -c "import sys; print(sys.version_info)"
+      - name: echo "::set-env name=LD_LIBRARY_PATH::$(readlink -m $(command -v python${{ matrix.python }})/../../lib)"
+      - run: python${{ matrix.python }} -c "import sys; print(sys.version_info)"
       - uses: ./
 
       - run: rez --version
