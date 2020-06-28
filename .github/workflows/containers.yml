@@ -22,11 +22,16 @@ jobs:
           python-version: "${{ matrix.python }}"
 
       - run: command -v python${{ matrix.python }}
-      # - run: ls -l $(readlink -m $(command -v python${{ matrix.python }})/../../lib)
-      # - run: echo "::set-env name=LD_LIBRARY_PATH::$LD_LIBRARY_PATH:$(readlink -m $(command -v python${{ matrix.python }})/../../lib)"
       - name: Check Python
         run: |
-          find /__t/Python -name "*.so*" | sort
+          if [ "${{ matrix.python }}" != "2.7" ]
+          then
+            export LD_LIBRARY_PATH="$(readlink -m $(command -v python${{ matrix.python }})/../../lib)"
+            ls -l "$LD_LIBRARY_PATH"
+            find /__t/Python -name "*.so*" | sort
+          fi
+
+          ldd $(command -v python${{ matrix.python }})
           python${{ matrix.python }} -c "import sys; print(sys.version_info)"
       - uses: ./
 
