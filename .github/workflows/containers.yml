@@ -23,7 +23,7 @@ jobs:
 
       - run: command -v python${{ matrix.python }}
       - run: ls -l $(readlink -m $(command -v python${{ matrix.python }})/../../lib)
-      - run: echo "::set-env LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$(readlink -m $(command -v python${{ matrix.python }})/../../lib)"
+      - run: echo "::set-env name=LD_LIBRARY_PATH::$LD_LIBRARY_PATH:$(readlink -m $(command -v python${{ matrix.python }})/../../lib)"
       - name: Check Python
         run: |
           echo "$LD_LIBRARY_PATH"
