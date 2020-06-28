@@ -26,8 +26,7 @@ jobs:
       - run: echo "::set-env name=LD_LIBRARY_PATH::$LD_LIBRARY_PATH:$(readlink -m $(command -v python${{ matrix.python }})/../../lib)"
       - name: Check Python
         run: |
-          echo "$LD_LIBRARY_PATH"
-          echo $(readlink -m $(command -v python${{ matrix.python }})/../../lib)
+          find /__t/Python -name "*.so*" | sort
           python${{ matrix.python }} -c "import sys; print(sys.version_info)"
       - uses: ./
 
