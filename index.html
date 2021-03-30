@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Home</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Home</h1>
+
+    
+
+
+
+    
+
+
+    <h3> </h3>
+
+
+
+
+
+
+
+
+
+
+    
+
+
+
+
+    <section>
+        <article><p><a href="https://github.com/j0yu/setup-rez/actions?query=branch%3Amaster+workflow%3ACI"><img src="https://github.com/j0yu/setup-rez/workflows/CI/badge.svg?branch=master" alt="CI"></a></p>
+<h1>setup-rez</h1>
+<p>Github Action to setup <a href="https://github.com/nerdvegas/rez">rez</a> package system.</p>
+<h2>Usage</h2>
+<pre class="prettyprint source lang-yaml"><code># Ensure there is a python interpreter first to install rez!
+- uses: actions/setup-python@v1
+  with:
+    python-version: &quot;${{ matrix.python }}&quot;
+
+- uses: j0yu/setup-rez@v1
+  # ALL below inputs are optional, these values are the default ones
+  with:
+    # GitHub repository to install rez from.
+    source: 'nerdvegas/rez'
+
+    # Git tag/branch/commit to use.
+    ref: 'master'
+
+    # Create all default &quot;rez config packages_path&quot;.
+    makePackagesPaths: true
+
+    # Comma separated packages to rez bind, e.g. &quot;pip, python, os&quot;.
+    # To disable, just pass in an empty string &quot;bind: ''&quot;
+    # See &quot;rez bind --list&quot;.
+    # Will force the creation of &quot;rez config local_packages_path&quot;
+    binds: &quot;os, python&quot;
+</code></pre>
+<h2>Example</h2>
+<p>Make sure you run <a href="github.com/actions/setup-python">actions/setup-python</a>
+before using <a href="github.com/j0yu/setup-rez">j0yu/setup-rez</a></p>
+<pre class="prettyprint source lang-yaml"><code>name: CI
+on: [push]
+
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-python@v1
+        with:
+          python-version: 2.7
+
+      # Using custom rez repository and version
+      - uses: j0yu/setup-rez@v1
+        with:
+          source: &quot;mottosso/bleeding-rez&quot;
+          ref: &quot;2.33.0&quot;
+      
+      # Check if rez is on PATH, check configs and rez bind packages
+      - run: rez --version
+      - run: rez config local_packages_path
+      - run: rez config release_packages_path
+      - run: rez config packages_path
+      - run: rez view os
+      - run: rez view python
+
+      # If our repository has a package.py, let's try test build/installing it
+      - uses: actions/checkout@v2
+      - run: rez build --install
+</code></pre>
+<h2>How it works</h2>
+<p>Everything is done in the <code>run</code> function in <code>index.js</code>:</p>
+<ol>
+<li>
+<p>Get cached install for the <code>source</code> and <code>ref</code> input combination</p>
+</li>
+<li>
+<p>If there is no installs/tools cache install rez:</p>
+<ol>
+<li>
+<p>Downloads and extracts from <code>https://github.com/${source}/archive/${ref}.tar.gz</code></p>
+</li>
+<li>
+<p>If <code>install.py</code> exists, install via <code>python install.py DEST</code></p>
+<p>else, if <code>setup.py</code> exists, install via <code>pip install --target DEST SRC</code></p>
+</li>
+<li>
+<p>Store required environment variable paths to append in a <code>setup.json</code></p>
+</li>
+</ol>
+</li>
+<li>
+<p>Load and append environment variables paths from <code>setup.json</code></p>
+<p>Typically <code>PATH</code> for <code>rez</code> command, <code>PYTHONPATH</code> if used <code>pip install --target</code>.</p>
+</li>
+<li>
+<p>Create any <code>rez config package_paths</code> folders if required.</p>
+</li>
+<li>
+<p>Create any <code>rez bind PKG...</code> packages if required.</p>
+</li>
+</ol>
+<p>Notes on install style availability:</p>
+<table>
+<thead>
+<tr>
+<th>Rez</th>
+<th>(1st) install.py</th>
+<th>(2nd) pip install</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>nerdvegas/rez</td>
+<td>Always</td>
+<td>2.33.0+</td>
+</tr>
+<tr>
+<td>mottosso/bleeding-rez</td>
+<td>NEVER</td>
+<td>Always</td>
+</tr>
+</tbody>
+</table>
+<h2>Developing</h2>
+<p>Clone this repository down and modify:</p>
+<ul>
+<li>
+<p><code>index.js</code> for the inner workings and logic.</p>
+<ul>
+<li><a href="https://nodejs.org/dist/latest-v12.x/docs/api/">Node.js 12x</a> API docs</li>
+<li><a href="https://github.com/actions/toolkit#packages">GitHub Action Toolkit Sub-Packages</a></li>
+</ul>
+</li>
+<li>
+<p><code>action.yml</code> for input/output and action definition.</p>
+<ul>
+<li><a href="https://help.github.com/en/actions/building-actions">GitHub: Building actions</a> specifically <a href="https://help.github.com/en/actions/building-actions/metadata-syntax-for-github-actions">Metadata Syntax</a></li>
+</ul>
+</li>
+<li>
+<p><code>.github/workflows/ci.yml</code> for tests.</p>
+</li>
+</ul>
+<details><summary>at the humble beginnings...</summary>
+<p>I didn't want to have npm installed, so here's the Docker contained way I
+worked on CentOS-7. See <a href="https://help.github.com/en/actions/building-actions/creating-a-javascript-action">Creating a JavaScript action</a>.</p>
+<ol>
+<li>
+<p>Clone this repository.</p>
+</li>
+<li>
+<p><code>cd</code> into the repository.</p>
+</li>
+<li>
+<p>Edit the <code>action.yml</code></p>
+</li>
+<li>
+<p>Setup <code>npm</code> package using Docker container.</p>
+<pre class="prettyprint source lang-bash"><code>alias npm=&quot;docker run --rm -it -v &quot;$(pwd):$(pwd)&quot; --user &quot;$(id -u):$(id -g)&quot; -w &quot;$(pwd)&quot; node:12 npm&quot;
+npm init -y
+npm install @actions/core --save
+npm install @actions/exec --save
+npm install @actions/io --save
+npm install @actions/tool-cache --save
+</code></pre>
+</li>
+<li>
+<p>Edit the <code>index.js</code></p>
+</li>
+<li>
+<p>Add paths required, then push:</p>
+<pre class="prettyprint source lang-bash"><code>git add --force action.yml index.js node_modules/* package.json package-lock.json README.md
+git commit
+git push
+</code></pre>
+</li>
+</ol>
+</details></article>
+    </section>
+
+
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#addPathsToEnvs">addPathsToEnvs</a></li><li><a href="global.html#getDirentPath">getDirentPath</a></li><li><a href="global.html#getRepoRootFile">getRepoRootFile</a></li><li><a href="global.html#installRez">installRez</a></li><li><a href="global.html#makePackagesPaths">makePackagesPaths</a></li><li><a href="global.html#run">run</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.6</a> on Tue Mar 30 2021 22:59:37 GMT+0000 (Coordinated Universal Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>
