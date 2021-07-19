@@ -3,7 +3,7 @@ on: push
 
 jobs:
   no_container:
-    name: Setup rez - ${{ matrix.platform }} Py${{ matrix.python }}
+    name: "On VM: ${{ matrix.platform }} Py${{ matrix.python }}"
     runs-on: ${{ matrix.platform }}-latest
     strategy:
       matrix:
@@ -19,7 +19,7 @@ jobs:
     - run: rez --version
 
   in_container:
-    name: Setup rez container:${{ matrix.platform }} Py${{ matrix.python }}
+    name: "In Container: ${{ matrix.platform }} Py${{ matrix.python }}"
     runs-on: ubuntu-latest
     container:
       image: ${{ matrix.platform }}
@@ -30,8 +30,11 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+    
     - uses: actions/setup-python@v2
       with:
         python-version: ${{ matrix.python }}
+    - run: python${{ matrix.python }} -V
+
     - uses: ./.
     - run: rez --version
