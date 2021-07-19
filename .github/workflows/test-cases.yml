@@ -44,4 +44,6 @@ jobs:
       - name: Check rez python version is correct
         run: |
           set -x
-          diff -y <(rez python -V) <(${{ matrix.yum_python}} -V)
+          rez python -V | tee rez_python.txt
+          ${{ matrix.yum_python }} -V | tee python.txt
+          diff -y rez_python.txt python.txt
