@@ -1,4 +1,4 @@
-[![CI](https://github.com/j0yu/setup-rez/workflows/CI/badge.svg?branch=master)](https://github.com/j0yu/setup-rez/actions?query=branch%3Amaster+workflow%3ACI)
+[![CI](https://github.com/j0yu/setup-rez/workflows/CI/badge.svg?branch=main)](https://github.com/j0yu/setup-rez/actions?query=branch:main+workflow:CI)
 
 # setup-rez
 
@@ -34,8 +34,8 @@ Github Action to setup [rez] package system.
 
 ## Example
 
-Make sure you run [actions/setup-python](github.com/actions/setup-python)
-before using [j0yu/setup-rez](github.com/j0yu/setup-rez)
+For VMs, make sure you run [actions/setup-python] before using
+[j0yu/setup-rez] so it has access to a Python Interpreter.
 
 ```yaml
 name: CI
@@ -55,7 +55,7 @@ jobs:
         with:
           source: "mottosso/bleeding-rez"
           ref: "2.33.0"
-      
+
       # Check if rez is on PATH, check configs and rez bind packages
       - run: rez --version
       - run: rez config local_packages_path
@@ -69,6 +69,46 @@ jobs:
       - run: rez build --install
 ```
 
+### Containers
+
+If you're using [`container`](https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#jobsjob_idcontainer)
+you'll need to install Python as per the image/system instead of using [actions/setup-python].
+
+
+```yaml
+name: CI
+on: [push]
+
+jobs:
+  test-centos7:
+    name: Test CentOS 7 (${{ matrix.yum_python }})
+    runs-on: ubuntu-latest
+    container:
+      image: "centos:7"
+    strategy:
+      matrix:
+        yum_python:
+          - "python"  # Python 2.7
+          - "python3" # Python 3.6
+
+    steps:
+      - run: yum install -y ${{ matrix.yum_python }}
+      - uses: j0yu/setup-rez@v1
+        with:
+          pythonExe: ${{ matrix.yum_python }}
+      - run: rez --version
+      - run: rez python -V
+```
+
+In this example, `centos:7` uses an old `glibc` and isn't compatible with
+[actions/setup-python]. But `rez` is ok with Python 2.7 and above (as recent as 2.93.0):
+
+- `python`: [j0yu/setup-rez] will use a slightly updated Python 2.7 interpreter that's
+  already shipped with `centos:7`.
+- `python3`: [j0yu/setup-rez] will run rez's `install.py` using `python3`
+  (nice coincidence) as the interpreter, instead of the default `python`.
+
+
 ## How it works
 
 Everything is done in the `run` function in `index.js`:
@@ -77,7 +117,7 @@ Everything is done in the `run` function in `index.js`:
 1. If there is no installs/tools cache install rez:
     1. Downloads and extracts from `https://github.com/${source}/archive/${ref}.tar.gz`
     1. If `install.py` exists, install via `python install.py DEST`
-    
+
          else, if `setup.py` exists, install via `pip install --target DEST SRC`
     1. Store required environment variable paths to append in a `setup.json`
 1. Load and append environment variables paths from `setup.json`
@@ -89,10 +129,10 @@ Everything is done in the `run` function in `index.js`:
 
 Notes on install style availability:
 
-Rez                   | (1st) install.py | (2nd) pip install 
+Rez                   | (1st) install.py | (2nd) pip install
 ----------------------|------------------|------------------
-nerdvegas/rez         | Always           | 2.33.0+           
-mottosso/bleeding-rez | NEVER            | Always           
+nerdvegas/rez         | Always           | 2.33.0+
+mottosso/bleeding-rez | NEVER            | Always
 
 
 ## Developing
@@ -141,6 +181,9 @@ worked on CentOS-7. See [Creating a JavaScript action].
 
 </details>
 
+
+[j0yu/setup-rez]: github.com/j0yu/setup-rez
+[actions/setup-python]: github.com/actions/setup-python
 [GitHub Action Toolkit Sub-Packages]: https://github.com/actions/toolkit#packages
 [Metadata Syntax]: https://help.github.com/en/actions/building-actions/metadata-syntax-for-github-actions
 [Node.js 12x]: https://nodejs.org/dist/latest-v12.x/docs/api/

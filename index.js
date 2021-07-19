@@ -37,12 +37,12 @@ async function getRepoRootFile(fileName, extractedPath) {
     // Tarball extracts to repo name + git ref sub-folder
     const srcFolder = await getDirentPath(
         extractedPath,
-        (dirent) => {return dirent.isDirectory()},
+        (dirent) => { return dirent.isDirectory() },
     );
     if (srcFolder) {
         const filePath = await getDirentPath(
             srcFolder,
-            (dirent) => {return dirent.isFile() && dirent.name == fileName},
+            (dirent) => { return dirent.isFile() && dirent.name == fileName },
         );
         if (filePath) {
             return filePath;
@@ -73,10 +73,11 @@ async function getRepoRootFile(fileName, extractedPath) {
  *
  * @param {string} rezGitRepo "user or org"/"repository name"
  * @param {string} gitRef master or commit hash or tag name or branch name.
+ * @param {string} pythonExe command line to feed exec.exec() as Python interpreter.
  * @returns {envPaths} Environment variable names and paths to add for
  * them to setup the installed/cached rez install.
  */
-async function installRez(rezGitRepo, gitRef) {
+async function installRez(rezGitRepo, gitRef, pythonExe) {
     var rezInstallPath = tc.find(rezGitRepo, gitRef);
     if (rezInstallPath.length) {
         var manifestData = null;
@@ -94,7 +95,7 @@ async function installRez(rezGitRepo, gitRef) {
     let exeArgs = [];
     let filePath = '';
     let rezInstall = {};
-    const binFolder = ((process.platform == 'win32') ? 'Scripts': 'bin');
+    const binFolder = ((process.platform == 'win32') ? 'Scripts' : 'bin');
 
     const downloadURL = `https://github.com/${rezGitRepo}/archive/${gitRef}.tar.gz`;
     core.info(`Downloading "${downloadURL}"...`);
@@ -104,7 +105,7 @@ async function installRez(rezGitRepo, gitRef) {
 
     try {
         filePath = await getRepoRootFile('install.py', rezInstallPath);
-        exeArgs = ['python', filePath, rezInstallPath];
+        exeArgs = [pythonExe, filePath, rezInstallPath];
         rezInstall['PATH'] = [path.join(rezInstallPath, binFolder, 'rez')];
     } catch (error) {
         if (error.name != 'MissingFileError') {
@@ -147,7 +148,7 @@ async function makePackagesPaths() {
     let output = '';
 
     await exec.exec('rez', ['config', 'packages_path'], {
-        listeners: {stdout: (data) => (output += data.toString())},
+        listeners: { stdout: (data) => (output += data.toString()) },
     })
     for (line of output.trim().split(os.EOL)) {
         await io.mkdirP(line.replace(/^- /, ''));
@@ -166,7 +167,7 @@ function addPathsToEnvs(envPaths) {
     for (varName in envPaths) {
         if (varName == 'PATH') {
             // Make rez bin available for binding later, if any
-            envPaths[varName].forEach(element => {core.addPath(element)});
+            envPaths[varName].forEach(element => { core.addPath(element) });
         } else {
             // Add to current process.env so exec.exec will also pick it up
             currentPath = process.env[varName];
@@ -190,7 +191,7 @@ async function run() {
     try {
         // Export relevant env vars for a rez install
         addPathsToEnvs(
-            await installRez(core.getInput('source'), core.getInput('ref'))
+            await installRez(core.getInput('source'), core.getInput('ref'), core.getInput('pythonExe'))
         );
 
         // Create all packages_path folders
@@ -203,7 +204,7 @@ async function run() {
             // Create local packages path
             let output = '';
             await exec.exec('rez', ['config', 'local_packages_path'], {
-                listeners: {stdout: (data) => (output += data.toString())},
+                listeners: { stdout: (data) => (output += data.toString()) },
             })
             await io.mkdirP(output.trimRight());
 

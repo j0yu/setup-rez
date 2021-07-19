@@ -16,6 +16,18 @@ inputs:
     required: false
     default: 'master'
 
+  pythonExe:
+    description: |
+      Python executable to run install.py with.
+
+      Can be switched to a more specific executable name, python3.6, or even
+      the full path to the interperter, /opt/rh/rh-python38/root/usr/bin/python3
+
+      Internally passed as commandLine to actions/toolkit:exec.exec()
+      https://github.com/actions/toolkit/blob/main/packages/exec/src/exec.ts#L12
+    required: false
+    default: 'python'
+
   makePackagesPaths:
     description: Create all default "rez config packages_path".
     required: false
