@@ -39,6 +39,8 @@ jobs:
       # in that case, don't use "actions/setup-python@v2" and just
       # let "j0yu/setup-rez" use the system's Python interpreter
       - uses: ./.
+        with:
+          pythonExe: ${{ matrix.yum_python }}
       - name: Check rez installed
         run: rez --version
       - name: Check rez python version is correct
