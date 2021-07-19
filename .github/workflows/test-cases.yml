@@ -17,3 +17,21 @@ jobs:
         python-version: ${{ matrix.python }}
     - uses: ./.
     - run: rez --version
+
+  in_container:
+    name: Setup rez container:${{ matrix.platform }} Py${{ matrix.python }}
+    runs-on: ubuntu-latest
+    container:
+      image: ${{ matrix.platform }}
+    strategy:
+      matrix:
+        platform: ["centos:7"]
+        python: [2.7, 3.7]
+
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python }}
+    - uses: ./.
+    - run: rez --version
