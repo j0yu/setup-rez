@@ -105,7 +105,7 @@ async function installRez(rezGitRepo, gitRef, pythonExe) {
 
     try {
         filePath = await getRepoRootFile('install.py', rezInstallPath);
-        exeArgs = ['python', filePath, rezInstallPath];
+        exeArgs = [pythonExe, filePath, rezInstallPath];
         rezInstall['PATH'] = [path.join(rezInstallPath, binFolder, 'rez')];
     } catch (error) {
         if (error.name != 'MissingFileError') {

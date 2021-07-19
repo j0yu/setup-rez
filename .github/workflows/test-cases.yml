@@ -11,12 +11,13 @@ jobs:
         python: [2.7, 3.7]
 
     steps:
-    - uses: actions/checkout@v2
-    - uses: actions/setup-python@v2
-      with:
-        python-version: ${{ matrix.python }}
-    - uses: ./.
-    - run: rez --version
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python }}
+      - uses: ./.
+      - name: Check rez installed
+        run: rez --version
 
   in_container:
     name: "In CentOS 7: ${{ matrix.yum_python }}"
@@ -38,5 +39,9 @@ jobs:
       # in that case, don't use "actions/setup-python@v2" and just
       # let "j0yu/setup-rez" use the system's Python interpreter
       - uses: ./.
-      - run: rez --version
-      - run: rez python -V
+      - name: Check rez installed
+        run: rez --version
+      - name: Check rez python version is correct
+        run: |
+          set -x
+          diff -y <(rez python -V) <(${{ matrix.yum_python}} -V)
