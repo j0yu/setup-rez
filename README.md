@@ -1,4 +1,4 @@
-[![CI](https://github.com/j0yu/setup-rez/workflows/CI/badge.svg?branch=master)](https://github.com/j0yu/setup-rez/actions?query=branch%3Amaster+workflow%3ACI)
+[![CI](https://github.com/j0yu/setup-rez/workflows/CI/badge.svg?branch=main)](https://github.com/j0yu/setup-rez/actions?query=branch:main+workflow:CI)
 
 # setup-rez
 
@@ -34,8 +34,8 @@ Github Action to setup [rez] package system.
 
 ## Example
 
-Make sure you run [actions/setup-python](github.com/actions/setup-python)
-before using [j0yu/setup-rez](github.com/j0yu/setup-rez)
+For VMs, make sure you run [actions/setup-python] before using
+[j0yu/setup-rez] so it has access to a Python Interpreter.
 
 ```yaml
 name: CI
@@ -68,6 +68,35 @@ jobs:
       - uses: actions/checkout@v2
       - run: rez build --install
 ```
+
+### Containers
+
+If you're using [`container`](https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#jobsjob_idcontainer)
+you'll need to install Python as per the image/system instead of using [actions/setup-python].
+
+
+```yaml
+name: CI
+on: [push]
+
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    container:
+      image: "centos:7"
+    steps:
+      # Will use CentOS 7's default, shipped Python 2.7 interpreter
+      - uses: j0yu/setup-rez@v1
+        
+      # Check if rez is on PATH, check configs and rez bind packages
+      - run: rez --version
+```
+
+In this example, `centos:7` uses an old `glibc` and isn't compatible with
+[actions/setup-python]. But `rez` is ok with Python 2.7 (as recent as 2.93.0) so
+[j0yu/setup-rez] will use the Python 2.7 interpreter shipped with `centos:7`.
+
 
 ## How it works
 
@@ -141,6 +170,9 @@ worked on CentOS-7. See [Creating a JavaScript action].
 
 </details>
 
+
+[j0yu/setup-rez]: github.com/j0yu/setup-rez
+[actions/setup-python]: github.com/actions/setup-python
 [GitHub Action Toolkit Sub-Packages]: https://github.com/actions/toolkit#packages
 [Metadata Syntax]: https://help.github.com/en/actions/building-actions/metadata-syntax-for-github-actions
 [Node.js 12x]: https://nodejs.org/dist/latest-v12.x/docs/api/
