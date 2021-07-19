@@ -1,0 +1,19 @@
+name: Tests
+on: push
+
+jobs:
+  no_container:
+    name: Setup rez - ${{ matrix.platform }} Py${{ matrix.python }}
+    runs-on: ${{ matrix.platform }}-latest
+    strategy:
+      matrix:
+        platform: [ubuntu, windows, macos]
+        python: [2.7, 3.7]
+
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python }}
+    - uses: ./.
+    - run: rez --version
