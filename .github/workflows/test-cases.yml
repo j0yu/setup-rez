@@ -19,20 +19,24 @@ jobs:
     - run: rez --version
 
   in_container:
-    name: "In Container: ${{ matrix.platform }}"
+    name: "In CentOS 7: ${{ matrix.yum_python }}"
     runs-on: ubuntu-latest
     container:
-      image: ${{ matrix.platform }}
+      image: "centos:7"
     strategy:
       matrix:
-        platform: ["centos:7"]
+        yum_python:
+          - "python"  # Python 2.7
+          - "python3" # Python 3.6
 
     steps:
-    - uses: actions/checkout@v2
-    # ---- WARNING: using actions/setup-python@v2 ----
-    # It MAY conflict with container's on Python interpreter/glibc
-    # e.g. for centos:7, which ships with it's own python2.7 and
-    # in that case, don't use "actions/setup-python@v2" and just
-    # let "j0yu/setup-rez" use the system's Python interpreter
-    - uses: ./.
-    - run: rez --version
+      - run: yum install -y ${{ matrix.yum_python }}
+      - uses: actions/checkout@v2
+      # ---- WARNING: using actions/setup-python@v2 ----
+      # It MAY conflict with container's on Python interpreter/glibc
+      # e.g. for centos:7, which ships with it's own python2.7 and
+      # in that case, don't use "actions/setup-python@v2" and just
+      # let "j0yu/setup-rez" use the system's Python interpreter
+      - uses: ./.
+      - run: rez --version
+      - run: rez python -V
