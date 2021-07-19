@@ -22,6 +22,9 @@ Github Action to setup [rez] package system.
     # Git tag/branch/commit to use.
     ref: 'master'
 
+    # Install using "python" as the Python interpreter
+    pythonExe: 'python'
+
     # Create all default "rez config packages_path".
     makePackagesPaths: true
 
