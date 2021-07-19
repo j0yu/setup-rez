@@ -19,22 +19,20 @@ jobs:
     - run: rez --version
 
   in_container:
-    name: "In Container: ${{ matrix.platform }} Py${{ matrix.python }}"
+    name: "In Container: ${{ matrix.platform }}"
     runs-on: ubuntu-latest
     container:
       image: ${{ matrix.platform }}
     strategy:
       matrix:
         platform: ["centos:7"]
-        python: [2.7, 3.7]
 
     steps:
     - uses: actions/checkout@v2
-    
-    # - uses: actions/setup-python@v2
-    #   with:
-    #     python-version: ${{ matrix.python }}
-    # - run: python${{ matrix.python }} -V
-
+    # ---- WARNING: using actions/setup-python@v2 ----
+    # It MAY conflict with container's on Python interpreter/glibc
+    # e.g. for centos:7, which ships with it's own python2.7 and
+    # in that case, don't use "actions/setup-python@v2" and just
+    # let "j0yu/setup-rez" use the system's Python interpreter
     - uses: ./.
     - run: rez --version
